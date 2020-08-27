@@ -2,58 +2,64 @@ var mongoose = require("mongoose");
 const crypto = require("crypto");
 const uuidv1 = require("uuid/v1");
 
+const { ObjectId } = mongoose.Schema;
+
 var userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
       required: true,
-      maxlength: 32,
-      trim: true
+      maxlength: 50,
+      trim: true,
     },
-    
     email: {
       type: String,
       trim: true,
       required: true,
-      unique: true
+      unique: true,
     },
     address: {
       type: String,
       trim: true,
-      required:true
+      required: true,
+    },
+    mobile: {
+      type: Number,
+      trim: true,
+      required: true,
+      unique: true,
     },
     encry_password: {
       type: String,
-      required: true
+      required: true,
     },
     salt: String,
     role: {
-        type: ObjectId,
-        ref: "Role_type",
-        required: true
-    }
-   
+      type: ObjectId,
+      ref: "UserRole",
+      required: true,
+    },
   },
   { timestamps: true }
 );
 
 userSchema
   .virtual("password")
-  .set(function(password) {
+  .set(function (password) {
     this._password = password;
     this.salt = uuidv1();
     this.encry_password = this.securePassword(password);
   })
-  .get(function() {
+  .get(function () {
     return this._password;
   });
 
 userSchema.methods = {
-  autheticate: function(plainpassword) {
+  autheticate: function (plainpassword) {
     return this.securePassword(plainpassword) === this.encry_password;
   },
 
-  securePassword: function(plainpassword) {
+  securePassword: function (plainpassword) {
     if (!plainpassword) return "";
     try {
       return crypto
@@ -63,7 +69,7 @@ userSchema.methods = {
     } catch (err) {
       return "";
     }
-  }
+  },
 };
 
 module.exports = mongoose.model("User", userSchema);
